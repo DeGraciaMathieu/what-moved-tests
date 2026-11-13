@@ -1,0 +1,38 @@
+name: Tests
+
+# what-moved holds no workflow, so that it stays publishable on the Marketplace: its tests run from here,
+# against its main branch, every night and on demand.
+on:
+  push:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: DeGraciaMathieu/what-moved
+          path: what-moved
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Install what-moved
+        working-directory: what-moved
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Install the tests
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run the tests
+        env:
+          WHAT_MOVED_PATH: ${{ github.workspace }}/what-moved
+        run: vendor/bin/pest

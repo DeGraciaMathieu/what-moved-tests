@@ -1,0 +1,11 @@
+{
+    "contexts": {
+        "Http":      { "prefixes": ["Http", "Policies"], "position": [390, 100] },
+        "Catalog":   { "position": [150, 230] },
+        "Ordering":  { "position": [390, 290] },
+        "Billing":   { "position": [630, 230] },
+        "Shipping":  { "position": [600, 450] },
+        "Customers": { "position": [200, 450] }
+    },
+    "exclude": ["Providers"]
+}

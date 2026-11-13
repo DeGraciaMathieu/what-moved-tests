@@ -1,0 +1,22 @@
+{
+    "name": "degraciamathieu/what-moved-tests",
+    "type": "project",
+    "require-dev": {
+        "pestphp/pest": "^3.8"
+    },
+    "description": "Tests of the analysis of what-moved, against fixtures and real Laravel code",
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:real": "pest --group=real"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
+}
