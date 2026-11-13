@@ -276,8 +276,9 @@ it('says so when the pull request touches no mapped class', function (callable $
     'a helper' => fn () => fn (Project $head) => $head->write(['app/helpers.php' => "<?php\n\nfunction euros(int \$cents): float { return \$cents / 100; }\n"]),
 ]);
 
-it('draws every context of a project without any config', function () {
-    $pullRequest = shopPullRequest(fn (Project $head) => $head->write(['app/Catalog/Domain/Price.php' => <<<'PHP'
+function changePrice(Project $head): void
+{
+    $head->write(['app/Catalog/Domain/Price.php' => <<<'PHP'
         <?php
 
         namespace App\Catalog\Domain;
@@ -286,8 +287,32 @@ it('draws every context of a project without any config', function () {
         {
             public function __construct(public int $cents) {}
         }
-        PHP]), config: []);
+        PHP]);
+}
 
-    expect($pullRequest->contexts())->toEqualCanonicalizing(['Billing', 'Catalog', 'Customers', 'Http', 'Ordering', 'Policies', 'Providers', 'Shipping'])
+it('shows only the contexts the pull request touched or an arrow links to them', function () {
+    // Price is used inside Catalog, and from Ordering by Order and OrderLine.
+    $pullRequest = shopPullRequest(changePrice(...));
+
+    expect($pullRequest->contexts())->toEqualCanonicalizing(['Catalog', 'Ordering'])
+        ->and($pullRequest->arrows())->toHaveKey('Ordering → Catalog');
+});
+
+it('shows every context when the config asks for it', function () {
+    $pullRequest = shopPullRequest(changePrice(...), [...shopConfig(), 'show-all-contexts' => true]);
+
+    expect($pullRequest->contexts())->toEqualCanonicalizing(['Billing', 'Catalog', 'Customers', 'Http', 'Ordering', 'Shipping']);
+});
+
+it('shows every context when the pull request touches none', function () {
+    $pullRequest = shopPullRequest(fn (Project $head) => $head->write(['routes/web.php' => "<?php\n\nuse Illuminate\\Support\\Facades\\Route;\n\nRoute::view('/', 'welcome');\n"]));
+
+    expect($pullRequest->contexts())->toEqualCanonicalizing(['Billing', 'Catalog', 'Customers', 'Http', 'Ordering', 'Shipping']);
+});
+
+it('draws a project without any config', function () {
+    $pullRequest = shopPullRequest(changePrice(...), config: []);
+
+    expect($pullRequest->contexts())->toEqualCanonicalizing(['Catalog', 'Ordering'])
         ->and($pullRequest->counts())->toBe(['1 of 6 changed']);
 });
